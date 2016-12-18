@@ -2,6 +2,7 @@ package wael.bendhia.services;
 
 import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -28,5 +29,13 @@ public class BandService {
    @Produces(MediaType.APPLICATION_JSON)
    public List<Band> getBandsVolume(@PathParam("volume") int volume){
       return bandDao.getAllBandsVolume(volume);
+   }
+   
+   @GET
+   @Path("/band")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public Band getBandFull(Band band){
+      return bandDao.getBand(band);
    }
 }

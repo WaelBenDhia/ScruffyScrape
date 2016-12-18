@@ -46,5 +46,8 @@ public class Album {
 		this.rating = rating;
 	}
 	
-	
+	@Override
+	public String toString(){
+		return "Name: " + name + " Year: " + year + " Rating: " + rating;
+	}
 }

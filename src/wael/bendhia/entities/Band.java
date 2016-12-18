@@ -44,6 +44,15 @@ public class Band implements Comparable<Band>{
 		return url;
 	}
 	
+	public String getFullUrl(){
+		String start = url.substring(0, Math.min(3, url.length()));
+		if(start.equals("../")){
+			return "http://scaruffi.com/" + url.substring(3, url.length());
+		}else{
+			return "http://scaruffi.com/vol" + volume + "/" + url;
+		}
+	}
+	
 	@XmlElement
 	public void setUrl(String url) {
 		   this.url = url;
@@ -69,7 +78,7 @@ public class Band implements Comparable<Band>{
 	
 	@Override
 	public String toString(){
-		return "Name: " + name + " Url: " + url + " Volume: " + volume;
+		return "Name: " + name + " Url: " + url + " Volume: " + volume + " Full url: " + getFullUrl() + " Biography: " + bio;
 	}
 
 	@Override
