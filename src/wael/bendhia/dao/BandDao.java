@@ -10,14 +10,14 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import wael.bendhia.entities.Album;
 import wael.bendhia.entities.Band;
 
 public class BandDao {
-	private static final String url = "http://scaruffi.com/";
-	private Document doc;
 	private List<Band> volume1Bands;
 	private List<Band> volume2Bands;
 	private List<Band> volume3Bands;
@@ -36,11 +36,6 @@ public class BandDao {
 		volume6Bands = new ArrayList<>();
 		volume7Bands = new ArrayList<>();
 		volume8Bands = new ArrayList<>();
-		try {
-			doc = Jsoup.connect(url).get();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
 	}
 	
 	public List<Band> getAllBands(){
@@ -112,10 +107,17 @@ public class BandDao {
 			try{
 				Document doc = Jsoup.connect(url).get();
 				//Parse Bio
-				Element bioTd = doc.getElementsByTag("table").get(1)
-						.getElementsByTag("td").get(1)
-						.getElementsByAttribute("width").get(0);
-				band.setBio(bioTd.text());
+				List<Node> bioTd = doc.getElementsByTag("table").get(1)
+						.getElementsByAttribute("bgcolor").get(0).childNodes();
+				String fullBio = "";
+				for(Node node : bioTd){
+					if(node instanceof TextNode){
+						fullBio += ((TextNode) node).getWholeText();
+					}else{
+						fullBio += ((Element)node).text();
+					}
+				}
+				band.setBio(fullBio);
 				//Parse albums
 				Element albumTd = doc.getElementsByTag("table").get(0)
 						.getElementsByTag("td").get(0);
@@ -129,7 +131,12 @@ public class BandDao {
 				band.setAlbums(new ArrayList<>());
 				for(int i = 0; i < albumNames.size(); i++){
 					Element albumName = albumNames.get(i);
-					String name = albumName.getElementsByTag("b").get(0).text();
+					String name = "dicks";
+					try{
+						name = albumName.getElementsByTag("b").get(0).text();
+					}catch(IndexOutOfBoundsException e){
+						name = albumName.text();
+					}
 					int year = 0;
 					float rating = ratings.get(i);
 					try{
@@ -143,10 +150,5 @@ public class BandDao {
 			}
 		}
 		return band;
-	}
-	
-	public Band getScruff(){
-		Element content = doc.getElementsByTag("center").get(0).getElementsByTag("font").get(0);;
-		return new Band(2, content.text(), "", null, null);
 	}
 }
