@@ -146,6 +146,7 @@ public class BandDao {
 					band.getAlbums().add(new Album(name, year, rating));
 				}
 			}catch (IOException e) {
+				band = null;
 				e.printStackTrace();
 			}
 		}
