@@ -2,8 +2,9 @@ package wael.bendhia.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,87 +19,62 @@ import wael.bendhia.entities.Album;
 import wael.bendhia.entities.Band;
 
 public class BandDao {
-	private List<Band> volume1Bands;
-	private List<Band> volume2Bands;
-	private List<Band> volume3Bands;
-	private List<Band> volume4Bands;
-	private List<Band> volume5Bands;
-	private List<Band> volume6Bands;
-	private List<Band> volume7Bands;
-	private List<Band> volume8Bands;
+	private Set<Band> allBands;
+	private Set<Band> jazzBands;
+	private Set<Band> rockBands;
 	
 	public BandDao(){
-		volume1Bands = new ArrayList<>();
-		volume2Bands = new ArrayList<>();
-		volume3Bands = new ArrayList<>();
-		volume4Bands = new ArrayList<>();
-		volume5Bands = new ArrayList<>();
-		volume6Bands = new ArrayList<>();
-		volume7Bands = new ArrayList<>();
-		volume8Bands = new ArrayList<>();
+		allBands = new TreeSet<>();
+		jazzBands = new TreeSet<>();
+		rockBands = new TreeSet<>();
 	}
 	
-	public List<Band> getAllBands(){
-		List<Band> bandList = new ArrayList<Band>();
-		for(int i = 1; i < 9; i++){
-			bandList.addAll(getAllBandsVolume(i));
+	public Set<Band> getAllBands(){
+		if(allBands.isEmpty()){
+			allBands.addAll(getRockBands());
+			allBands.addAll(getJazzBands());
 		}
-		Collections.sort(bandList);
-		return bandList;
+		return allBands;
 	}
 	
-	public List<Band> getAllBandsVolume(int volume){
-		List<Band> bands;
-		switch(volume){
-		case 1:
-			bands = volume1Bands;
-			break;
-		case 2:
-			bands = volume2Bands;
-			break;
-		case 3:
-			bands = volume3Bands;
-			break;
-		case 4:
-			bands = volume4Bands;
-			break;
-		case 5:
-			bands = volume5Bands;
-			break;
-		case 6:
-			bands = volume6Bands;
-			break;
-		case 7:
-			bands = volume7Bands;
-			break;
-		case 8:
-			bands = volume8Bands;
-			break;
-		default:
-			bands = volume1Bands;
-			break;
-		}
-		if(bands.isEmpty()){
-			String url = "http://www.scaruffi.com/vol" + volume + "/";
+	public Set<Band> getRockBands(){
+		if(rockBands.isEmpty()){
+			String url = "http://scaruffi.com/music/groups.html";
 			try {
 				Document doc = Jsoup.connect(url).get();
-				Elements selects = doc.getElementsByTag("select");
-				for(Element select : selects){
-					Elements optionsTemp = select.getElementsByTag("option");
-					for(int i = 1; i < optionsTemp.size(); i++)
-						bands.add(new Band(
-								volume,
-								optionsTemp.get(i).text(), 
-								optionsTemp.get(i).attr("value"),
-								null,
-								null));
+				Elements bandElements = doc.getElementsByTag("table").get(2).getElementsByTag("a");
+				for(Element bandElement : bandElements){
+					rockBands.add(new Band(
+							bandElement.text(),
+							bandElement.attr("href"),
+							null,
+							null));
 				}
-				Collections.sort(bands);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		return bands;
+		return rockBands;
+	}
+	
+	public Set<Band> getJazzBands(){
+		if(jazzBands.isEmpty()){
+			String url = "http://scaruffi.com/jazz/musician.html";
+			try {
+				Document doc = Jsoup.connect(url).get();
+				Elements bandElements = doc.getElementsByAttributeValue("width", "400").get(0).getElementsByTag("a");
+				for(Element bandElement : bandElements){
+					jazzBands.add(new Band(
+							bandElement.text(),
+							bandElement.attr("href"),
+							null,
+							null));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return jazzBands;
 	}
 	
 	public Band getBand(Band band){
@@ -138,8 +114,9 @@ public class BandDao {
 						name = albumName.text();
 					}
 					int year = 0;
-					float rating = ratings.get(i);
+					float rating = 0;
 					try{
+						rating = ratings.get(i);
 						year = Integer.parseInt(albumName.text().substring(Math.min(name.length() + 2, albumName.text().length()), albumName.text().length()-1));
 					}catch (Exception e) {
 					}

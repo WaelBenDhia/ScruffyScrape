@@ -1,12 +1,11 @@
 package wael.bendhia.services;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -21,15 +20,22 @@ public class BandService {
    @GET
    @Path("/bands")
    @Produces(MediaType.APPLICATION_JSON)
-   public List<Band> getBands(){
+   public Set<Band> getBands(){
       return bandDao.getAllBands();
    }
    
    @GET
-   @Path("/bands/vol/{volume}")
+   @Path("/bands/rock")
    @Produces(MediaType.APPLICATION_JSON)
-   public List<Band> getBandsVolume(@PathParam("volume") int volume){
-      return bandDao.getAllBandsVolume(volume);
+   public Set<Band> getRockBands(){
+      return bandDao.getRockBands();
+   }
+   
+   @GET
+   @Path("/bands/jazz")
+   @Produces(MediaType.APPLICATION_JSON)
+   public Set<Band> getJazzBands(){
+      return bandDao.getJazzBands();
    }
    
    @POST
@@ -40,6 +46,6 @@ public class BandService {
 	   if(band != null)
 		   return bandDao.getBand(band);
 	   else
-		   return new Band(0, "You gave me nothing", null, null, null);
+		   return new Band("You gave me nothing", null, null, null);
    }
 }

@@ -7,7 +7,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "band")
 public class Band implements Comparable<Band>{
-	private int volume;
 	private String name;
 	private String url;
 	private String bio;
@@ -15,21 +14,11 @@ public class Band implements Comparable<Band>{
 
 	public Band(){}
 	   
-	public Band(int volume, String name, String url, String bio, List<Album> albums){
-		this.volume = volume;
+	public Band(String name, String url, String bio, List<Album> albums){
 		this.name = name;
 		this.url = url;
 		this.bio = bio;
 		this.albums = albums;
-	}
-
-	public int getVolume() {
-		return volume;
-	}
-
-	@XmlElement
-	public void setVolume(int volume) {
-		this.volume = volume;
 	}
 	
 	public String getName() {
@@ -43,14 +32,10 @@ public class Band implements Comparable<Band>{
 	public String getUrl() {
 		return url;
 	}
-	
+
+	@XmlElement
 	public String getFullUrl(){
-		String start = url.substring(0, Math.min(3, url.length()));
-		if(start.equals("../")){
-			return "http://scaruffi.com/" + url.substring(3, url.length());
-		}else{
-			return "http://scaruffi.com/vol" + volume + "/" + url;
-		}
+		return "http://scaruffi.com/" + url.substring(3, url.length());
 	}
 	
 	@XmlElement
@@ -78,11 +63,16 @@ public class Band implements Comparable<Band>{
 	
 	@Override
 	public String toString(){
-		return "Name: " + name + " Url: " + url + " Volume: " + volume + " Full url: " + getFullUrl() + " Biography: " + bio;
+		return "Name: " + name + " Url: " + url + " Full url: " + getFullUrl() + " Biography: " + bio;
 	}
 
 	@Override
 	public int compareTo(Band o) {
 		return name.toLowerCase().compareTo(o.getName().toLowerCase());
+	}
+	
+	@Override
+	public int hashCode(){
+		return url.hashCode();
 	}
 }
