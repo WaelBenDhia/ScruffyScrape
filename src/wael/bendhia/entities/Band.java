@@ -15,10 +15,10 @@ public class Band implements Comparable<Band>{
 	public Band(){}
 	   
 	public Band(String name, String url, String bio, List<Album> albums){
-		this.name = name;
-		this.url = url;
-		this.bio = bio;
-		this.albums = albums;
+		setUrl(url);
+		setName(name);
+		setBio(bio);
+		setAlbums(albums);
 	}
 	
 	public String getName() {
@@ -26,6 +26,9 @@ public class Band implements Comparable<Band>{
 	}
 	@XmlElement
 	public void setName(String name) {
+		if(name.isEmpty())
+			this.name = url.substring(url.indexOf('/'), url.indexOf('.'));
+		else
 		   this.name = name;
 	}
 	
@@ -35,12 +38,15 @@ public class Band implements Comparable<Band>{
 
 	@XmlElement
 	public String getFullUrl(){
-		return "http://scaruffi.com/" + url.substring(3, url.length());
+		return "http://scaruffi.com/" + url;
 	}
 	
 	@XmlElement
 	public void setUrl(String url) {
-		   this.url = url;
+		if(url.substring(0,3).equals("../"))
+		   this.url = url.substring(3, url.length());
+		else
+			this.url = url;
 	}
 	
 	public String getBio(){

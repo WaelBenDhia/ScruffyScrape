@@ -104,6 +104,9 @@ public class BandDao {
 					ratings.add(Float.parseFloat(matcher.group()));
 				}
 				Elements albumNames = albumTd.getElementsByTag("a");
+				if(albumNames.isEmpty()){
+					albumNames = albumTd.getElementsByTag("b");
+				}
 				band.setAlbums(new ArrayList<>());
 				for(int i = 0; i < albumNames.size(); i++){
 					Element albumName = albumNames.get(i);
