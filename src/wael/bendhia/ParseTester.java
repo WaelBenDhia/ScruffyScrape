@@ -10,8 +10,7 @@ import wael.bendhia.entities.Band;
 public class ParseTester {
 	public static void main(String[] args){
 		BandDao bandDao = new BandDao();
-		/*Band huskerDu = new Band(4, "Husker Du", "huskerdu.html", null, null, null);
-		Band frankZappa = new Band(1, "Frank Zappa", "zappa.html", null, null, null);
+		/*
 		bandDao.getBand(huskerDu);
 		System.out.println(huskerDu.getName() + ":\n" + huskerDu.getBio());
 		for(Album album : huskerDu.getAlbums())
@@ -23,9 +22,14 @@ public class ParseTester {
 		*/
 		/*for(Band band : bandDao.getJazzBands())
 			System.out.println(band.toString());*/
-		Band huskerDu = new Band("Anaal Nathrakh", "vol7/anaal.html", null, null, null);
-		System.out.println(bandDao.getBand(huskerDu).toString());
-		for(Album album : huskerDu.getAlbums())
-			System.out.println(album.toString());
+		//Band anaal = new Band("Anaal Nathrakh", "vol7/anaal.html", null, null, null);
+		//Band huskerDu = new Band("Husker Du", "vol4/huskerdu.html", null, null, null);
+		Band zappa = new Band("Frank Zappa", "vol1/zappa.html", null, null, null);
+		//bandDao.getBand(anaal);
+		//bandDao.getBand(huskerDu);
+		bandDao.getBand(zappa);
+		for(Band band : zappa.getRelatedBands()){
+			System.out.println(band.toString());
+		}
 	}
 }

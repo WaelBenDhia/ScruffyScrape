@@ -132,6 +132,10 @@ public class BandDao {
 				for(Element relatedBandElement : relatedBandElements){
 					String name = relatedBandElement.text();
 					String partialUrl =  relatedBandElement.attr("href");
+					if(!partialUrl.contains("vol")){
+						int volume = band.getUrl().charAt(3) - '0';
+						partialUrl = "vol" + volume + '/' + partialUrl;
+					}
 					if(!partialUrl.isEmpty() && !name.equals("contact me") && !name.isEmpty()){
 						relatedBands.add(new Band(name, partialUrl, null, null, null));
 					}
