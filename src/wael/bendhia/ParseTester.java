@@ -21,9 +21,9 @@ public class ParseTester {
 		for(Album album : frankZappa.getAlbums())
 			System.out.println(album.toString());
 		*/
-		for(Band band : bandDao.getJazzBands())
-			System.out.println(band.toString());
-		Band huskerDu = new Band("Husker Du", "vol4/huskerdu.html", null, null);
+		/*for(Band band : bandDao.getJazzBands())
+			System.out.println(band.toString());*/
+		Band huskerDu = new Band("Anaal Nathrakh", "vol7/anaal.html", null, null, null);
 		System.out.println(bandDao.getBand(huskerDu).toString());
 		for(Album album : huskerDu.getAlbums())
 			System.out.println(album.toString());

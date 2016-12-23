@@ -47,8 +47,7 @@ public class BandDao {
 					rockBands.add(new Band(
 							bandElement.text(),
 							bandElement.attr("href"),
-							null,
-							null));
+							null, null, null));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -67,8 +66,7 @@ public class BandDao {
 					jazzBands.add(new Band(
 							bandElement.text(),
 							bandElement.attr("href"),
-							null,
-							null));
+							null, null, null));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -116,15 +114,29 @@ public class BandDao {
 					}catch(IndexOutOfBoundsException e){
 						name = albumName.text();
 					}
-					int year = 0;
-					float rating = 0;
-					try{
-						rating = ratings.get(i);
-						year = Integer.parseInt(albumName.text().substring(Math.min(name.length() + 2, albumName.text().length()), albumName.text().length()-1));
-					}catch (Exception e) {
+					if(!name.isEmpty()){
+						int year = 0;
+						float rating = 0;
+						try{
+							rating = ratings.get(i);
+							year = Integer.parseInt(albumName.text().substring(Math.min(name.length() + 2, albumName.text().length()), albumName.text().length()-1));
+						}catch (Exception e) {
+						}
+						band.getAlbums().add(new Album(name, year, rating));
 					}
-					band.getAlbums().add(new Album(name, year, rating));
 				}
+				//Parse related bands
+				Elements relatedBandElements = doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(0).getElementsByTag("a");
+				relatedBandElements.addAll(doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(1).getElementsByTag("a"));
+				Set<Band> relatedBands = new TreeSet<>();
+				for(Element relatedBandElement : relatedBandElements){
+					String name = relatedBandElement.text();
+					String partialUrl =  relatedBandElement.attr("href");
+					if(!partialUrl.isEmpty() && !name.equals("contact me") && !name.isEmpty()){
+						relatedBands.add(new Band(name, partialUrl, null, null, null));
+					}
+				}
+				band.setRelatedBands(relatedBands);
 			}catch (IOException e) {
 				band = null;
 				e.printStackTrace();

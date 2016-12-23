@@ -46,6 +46,6 @@ public class BandService {
 	   if(band != null)
 		   return bandDao.getBand(band);
 	   else
-		   return new Band("You gave me nothing", null, null, null);
+		   return new Band("You gave me nothing", null, null, null, null);
    }
 }

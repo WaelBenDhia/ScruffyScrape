@@ -1,6 +1,8 @@
 package wael.bendhia.entities;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -11,14 +13,16 @@ public class Band implements Comparable<Band>{
 	private String url;
 	private String bio;
 	private List<Album> albums;
+	private Set<Band> relatedBands;
 
 	public Band(){}
 	   
-	public Band(String name, String url, String bio, List<Album> albums){
+	public Band(String name, String url, String bio, List<Album> albums, Set<Band> relatedBands){
 		setUrl(url);
 		setName(name);
 		setBio(bio);
 		setAlbums(albums);
+		setRelatedBands(relatedBands);
 	}
 	
 	public String getName() {
@@ -44,7 +48,7 @@ public class Band implements Comparable<Band>{
 	@XmlElement
 	public void setUrl(String url) {
 		if(url.substring(0,3).equals("../"))
-		   this.url = url.substring(3, url.length());
+		   this.url = url.substring(4, url.length());
 		else
 			this.url = url;
 	}
@@ -66,10 +70,19 @@ public class Band implements Comparable<Band>{
 	public void setAlbums(List<Album> albums){
 		this.albums = albums;
 	}
+
+	public void setRelatedBands(Set<Band> relatedBands) {
+		this.relatedBands = relatedBands;
+	}
 	
+	@XmlElement
+	public Set<Band> getRelatedBands() {
+		return relatedBands;
+	}
+
 	@Override
 	public String toString(){
-		return "Name: " + name + " Url: " + url + " Full url: " + getFullUrl() + " Biography: " + bio;
+		return "Name: " + name + " Url: " + url + " Full url: " + getFullUrl() + " Biography: " + bio + " Related bands: " + relatedBands.stream().map(Band::getName).collect(Collectors.joining(", "));
 	}
 
 	@Override
