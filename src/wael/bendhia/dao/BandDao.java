@@ -92,6 +92,8 @@ public class BandDao {
 			String url = band.getFullUrl();
 			try{
 				Document doc = Jsoup.connect(url).get();
+				//Parse name
+				band.setName(doc.getElementsByTag("center").get(0).getElementsByTag("font").get(0).text());
 				//Parse Bio
 				List<Node> bioTd = doc.getElementsByTag("table").get(1)
 						.getElementsByAttribute("bgcolor").get(0).childNodes();
