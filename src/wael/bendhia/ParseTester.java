@@ -24,11 +24,11 @@ public class ParseTester {
 			System.out.println(band.toString());*/
 		//Band anaal = new Band("Anaal Nathrakh", "vol7/anaal.html", null, null, null);
 		//Band huskerDu = new Band("Husker Du", "vol4/huskerdu.html", null, null, null);
-		Band zappa = new Band("Frank Zappa", "vol1/zappa.html", null, null, null);
+		Band zappa = new Band("Black Sabbath", "vol3/blacksab.html", null, null, null);
 		//bandDao.getBand(anaal);
 		//bandDao.getBand(huskerDu);
 		bandDao.getBand(zappa);
-		for(Band band : zappa.getRelatedBands()){
+		for(Album band : zappa.getAlbums()){
 			System.out.println(band.toString());
 		}
 	}

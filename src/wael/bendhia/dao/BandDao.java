@@ -13,6 +13,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
 
 import wael.bendhia.entities.Album;
@@ -22,6 +23,17 @@ public class BandDao {
 	private Set<Band> allBands;
 	private Set<Band> jazzBands;
 	private Set<Band> rockBands;
+	
+	public static String htmlToString(String html) {
+	    if(html==null)
+	        return html;
+	    Document document = Jsoup.parse(html);
+	    document.outputSettings(new Document.OutputSettings().prettyPrint(false));
+	    document.select("br").append("\\n");
+	    document.select("p").prepend("\\n\\n");
+	    String s = document.html().replaceAll("\\\\n", "\n");
+	    return Jsoup.clean(s, "", Whitelist.none(), new Document.OutputSettings().prettyPrint(false));
+	}
 	
 	public BandDao(){
 		allBands = new TreeSet<>();
@@ -95,35 +107,30 @@ public class BandDao {
 				//Parse albums
 				Element albumTd = doc.getElementsByTag("table").get(0)
 						.getElementsByTag("td").get(0);
-				Pattern ratingPattern = Pattern.compile("([0-9]*\\.[0-9]+|[0-9]+)(?=/10)");
-				Matcher matcher = ratingPattern.matcher(albumTd.text());
-				List<Float> ratings = new ArrayList<>();
+				
+				String text = htmlToString(albumTd.outerHtml());
+				Pattern albumPattern = Pattern.compile(".+, ([0-9]*.[0-9]+|[0-9]+)/10");
+				Matcher matcher = albumPattern.matcher(text);
+				List<String> albumStrings = new ArrayList<>();
 				while(matcher.find()){
-					ratings.add(Float.parseFloat(matcher.group()));
+					albumStrings.add(matcher.group().trim());
 				}
-				Elements albumNames = albumTd.getElementsByTag("a");
-				if(albumNames.isEmpty()){
-					albumNames = albumTd.getElementsByTag("b");
-				}
+				
+				Pattern albumNamePattern = Pattern.compile("(^.+)(?=[(].*[)])|(^.+)(?=,)");
+				Pattern yearPattern = Pattern.compile("[0-9]{4}");
+				Pattern ratingPattern = Pattern.compile("([0-9]\\.[0-9]|[0-9])(?=/10)");
 				band.setAlbums(new ArrayList<>());
-				for(int i = 0; i < albumNames.size(); i++){
-					Element albumName = albumNames.get(i);
-					String name = "dicks";
-					try{
-						name = albumName.getElementsByTag("b").get(0).text();
-					}catch(IndexOutOfBoundsException e){
-						name = albumName.text();
-					}
-					if(!name.isEmpty()){
-						int year = 0;
-						float rating = 0;
-						try{
-							rating = ratings.get(i);
-							year = Integer.parseInt(albumName.text().substring(Math.min(name.length() + 2, albumName.text().length()), albumName.text().length()-1));
-						}catch (Exception e) {
-						}
-						band.getAlbums().add(new Album(name, year, rating));
-					}
+				for(String albumString : albumStrings){
+					
+					Matcher nameMatcher = albumNamePattern.matcher(albumString); 
+					Matcher yearMatcher = yearPattern.matcher(albumString);
+					Matcher ratingMatcher = ratingPattern.matcher(albumString);
+					
+					String name = nameMatcher.find() ? nameMatcher.group().trim() : "";
+					int year = yearMatcher.find() ? Integer.parseInt(yearMatcher.group()) : 0;
+					float rating = ratingMatcher.find() ? Float.parseFloat(ratingMatcher.group()) : 0;
+					
+					band.getAlbums().add(new Album(name, year, rating));
 				}
 				//Parse related bands
 				Elements relatedBandElements = doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(0).getElementsByTag("a");
