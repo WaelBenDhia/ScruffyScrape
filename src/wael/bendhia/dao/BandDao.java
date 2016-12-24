@@ -145,7 +145,7 @@ public class BandDao {
 						int volume = band.getUrl().charAt(3) - '0';
 						partialUrl = "vol" + volume + '/' + partialUrl;
 					}
-					if(!partialUrl.isEmpty() && !name.equals("contact me") && !name.equals("contattami") && !name.isEmpty()){
+					if(!partialUrl.isEmpty() && !partialUrl.contains("mail") && !name.equals("contact me") && !name.equals("contattami") && !name.isEmpty()){
 						relatedBands.add(new Band(name, partialUrl, null, null, null));
 					}
 				}

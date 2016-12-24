@@ -30,6 +30,7 @@ public class Band implements Comparable<Band>{
 	}
 	@XmlElement
 	public void setName(String name) {
+		if(name == null) name = "";
 		if(name.isEmpty())
 			this.name = url.substring(url.indexOf('/'), url.indexOf('.'));
 		else

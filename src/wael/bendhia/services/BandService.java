@@ -2,10 +2,9 @@ package wael.bendhia.services;
 
 import java.util.Set;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
@@ -38,14 +37,10 @@ public class BandService {
       return bandDao.getJazzBands();
    }
    
-   @POST
-   @Path("/band")
-   @Consumes(MediaType.APPLICATION_JSON)
+   @GET
+   @Path("/band/{volume}/{url}")
    @Produces(MediaType.APPLICATION_JSON)
-   public Band getBandFull(Band band){
-	   if(band != null)
-		   return bandDao.getBand(band);
-	   else
-		   return new Band("You gave me nothing", null, null, null, null);
+   public Band getBandFull(@PathParam("volume") String volume, @PathParam("url") String url){
+	   return bandDao.getBand(new Band(null, volume+"/"+url+".html", null, null, null));
    }
 }
