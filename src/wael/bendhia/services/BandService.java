@@ -41,6 +41,6 @@ public class BandService {
    @Path("/band/{volume}/{url}")
    @Produces(MediaType.APPLICATION_JSON)
    public Band getBandFull(@PathParam("volume") String volume, @PathParam("url") String url){
-	   return bandDao.getBand(new Band(null, volume+"/"+url+".html", null, null, null));
+	   return bandDao.getBand(new Band("", volume+"/"+url+".html", "", null, null));
    }
 }

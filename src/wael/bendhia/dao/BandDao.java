@@ -18,8 +18,10 @@ import org.jsoup.select.Elements;
 
 import wael.bendhia.entities.Album;
 import wael.bendhia.entities.Band;
+import wael.bendhia.utils.ScaruffiDB;
 
 public class BandDao {
+	private ScaruffiDB sdb;
 	private Set<Band> allBands;
 	private Set<Band> jazzBands;
 	private Set<Band> rockBands;
@@ -36,15 +38,21 @@ public class BandDao {
 	}
 	
 	public BandDao(){
+		sdb = ScaruffiDB.getInstance();
 		allBands = new TreeSet<>();
 		jazzBands = new TreeSet<>();
 		rockBands = new TreeSet<>();
 	}
 	
 	public Set<Band> getAllBands(){
+		allBands = sdb.getAll();
 		if(allBands.isEmpty()){
 			allBands.addAll(getRockBands());
 			allBands.addAll(getJazzBands());
+			for(Band band : allBands){
+				sdb.insertOrUpdateFull(band);
+				System.out.println("Inserting into db: " + band.getName());
+			}
 		}
 		return allBands;
 	}
@@ -88,73 +96,122 @@ public class BandDao {
 	}
 	
 	public Band getBand(Band band){
+		Band retBand = null;
 		if(band.getBio() == null || band.getAlbums() == null){
-			String url = band.getFullUrl();
-			try{
-				Document doc = Jsoup.connect(url).get();
-				//Parse name
-				band.setName(doc.getElementsByTag("center").get(0).getElementsByTag("font").get(0).text());
-				//Parse Bio
-				List<Node> bioTd = doc.getElementsByTag("table").get(1)
-						.getElementsByAttribute("bgcolor").get(0).childNodes();
-				String fullBio = "";
-				for(Node node : bioTd){
-					if(node instanceof TextNode){
-						fullBio += ((TextNode) node).getWholeText();
-					}else{
-						fullBio += ((Element)node).text();
-					}
+			retBand = sdb.getBandFull(band.getUrl());
+			if(
+					retBand == null ||
+					retBand.getBio() == null ||
+					retBand.getBio().isEmpty() ||
+					retBand.getAlbums() == null ||
+					retBand.getAlbums().isEmpty()){
+				String url = band.getFullUrl();
+				try{
+					Document doc = Jsoup.connect(url).get();
+					retBand = new Band();
+					retBand.setName(band.getName());
+					retBand.setUrl(band.getUrl());
+					//Parse name
+					try{
+						String name = doc.getElementsByTag("center").get(0).getElementsByTag("font").get(0).text();
+						if(!name.contains("Scaruffi"))
+							retBand.setName(name);
+					}catch (Exception e) {}
+					//Parse Bio
+					try{
+						List<Node> bioTd = doc.getElementsByTag("table").get(1)
+								.getElementsByAttribute("bgcolor").get(0).childNodes();
+						String fullBio = "";
+						for(Node node : bioTd){
+							if(node instanceof TextNode){
+								fullBio += ((TextNode) node).getWholeText();
+							}else{
+								fullBio += ((Element)node).text();
+							}
+						}
+						retBand.setBio(fullBio);
+					}catch (Exception e) {}
+					//Parse albums
+					try{
+						Element albumTd = doc.getElementsByTag("table").get(0)
+								.getElementsByTag("td").get(0);
+						
+						String text = htmlToString(albumTd.outerHtml());
+						Pattern albumPattern = Pattern.compile(".+, ([0-9]*.[0-9]+|[0-9]+)/10");
+						Matcher matcher = albumPattern.matcher(text);
+						List<String> albumStrings = new ArrayList<>();
+						while(matcher.find()){
+							albumStrings.add(matcher.group().trim());
+						}
+						
+						Pattern albumNamePattern = Pattern.compile("(^.+)(?=[(].*[)])|(^.+)(?=,)");
+						Pattern yearPattern = Pattern.compile("(?<=[(])[0-9]{4}(?=[)])");
+						Pattern ratingPattern = Pattern.compile("([0-9]\\.[0-9]|[0-9])(?=/10)");
+						List<Album> albums = new ArrayList<>();
+						for(String albumString : albumStrings){
+							
+							Matcher nameMatcher = albumNamePattern.matcher(albumString); 
+							Matcher yearMatcher = yearPattern.matcher(albumString);
+							Matcher ratingMatcher = ratingPattern.matcher(albumString);
+							
+							String name = nameMatcher.find() ? nameMatcher.group().trim() : "";
+							int year = yearMatcher.find() ? Integer.parseInt(yearMatcher.group()) : 0;
+							float rating = ratingMatcher.find() ? Float.parseFloat(ratingMatcher.group()) : 0;
+							
+							albums.add(new Album(name, year, rating));
+						}
+						retBand.setAlbums(albums);
+					}catch (Exception e) {}
+					//Parse related bands
+					try{
+						Elements relatedBandElements = doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(0).getElementsByTag("a");
+						relatedBandElements.addAll(doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(1).getElementsByTag("a"));
+						Set<Band> relatedBands = new TreeSet<>();
+						for(Element relatedBandElement : relatedBandElements){
+							String name = relatedBandElement.text();
+							String partialUrl =  relatedBandElement.attr("href");
+							if(!partialUrl.contains("vol")){
+								int volume = band.getUrl().charAt(3) - '0';
+								partialUrl = "vol" + volume + '/' + partialUrl;
+							}
+							if(
+									!partialUrl.isEmpty() &&
+									!partialUrl.contains("mail") &&
+									!partialUrl.contains("http") &&
+									!name.isEmpty() &&
+									!name.contains("contact") &&
+									!name.contains("contattami")
+									){
+								relatedBands.add(new Band(name, partialUrl, null, null, null));
+							}
+						}
+						retBand.setRelatedBands(relatedBands);
+					}catch (Exception e) {}
+					System.out.println("Full insert of " + retBand.getName());
+					sdb.insertOrUpdateFull(retBand);
+				}catch (IOException e) {
+					retBand = null;
+					e.printStackTrace();
 				}
-				band.setBio(fullBio);
-				//Parse albums
-				Element albumTd = doc.getElementsByTag("table").get(0)
-						.getElementsByTag("td").get(0);
-				
-				String text = htmlToString(albumTd.outerHtml());
-				Pattern albumPattern = Pattern.compile(".+, ([0-9]*.[0-9]+|[0-9]+)/10");
-				Matcher matcher = albumPattern.matcher(text);
-				List<String> albumStrings = new ArrayList<>();
-				while(matcher.find()){
-					albumStrings.add(matcher.group().trim());
-				}
-				
-				Pattern albumNamePattern = Pattern.compile("(^.+)(?=[(].*[)])|(^.+)(?=,)");
-				Pattern yearPattern = Pattern.compile("[0-9]{4}");
-				Pattern ratingPattern = Pattern.compile("([0-9]\\.[0-9]|[0-9])(?=/10)");
-				band.setAlbums(new ArrayList<>());
-				for(String albumString : albumStrings){
-					
-					Matcher nameMatcher = albumNamePattern.matcher(albumString); 
-					Matcher yearMatcher = yearPattern.matcher(albumString);
-					Matcher ratingMatcher = ratingPattern.matcher(albumString);
-					
-					String name = nameMatcher.find() ? nameMatcher.group().trim() : "";
-					int year = yearMatcher.find() ? Integer.parseInt(yearMatcher.group()) : 0;
-					float rating = ratingMatcher.find() ? Float.parseFloat(ratingMatcher.group()) : 0;
-					
-					band.getAlbums().add(new Album(name, year, rating));
-				}
-				//Parse related bands
-				Elements relatedBandElements = doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(0).getElementsByTag("a");
-				relatedBandElements.addAll(doc.getElementsByTag("table").get(1).getElementsByAttribute("bgcolor").get(1).getElementsByTag("a"));
-				Set<Band> relatedBands = new TreeSet<>();
-				for(Element relatedBandElement : relatedBandElements){
-					String name = relatedBandElement.text();
-					String partialUrl =  relatedBandElement.attr("href");
-					if(!partialUrl.contains("vol")){
-						int volume = band.getUrl().charAt(3) - '0';
-						partialUrl = "vol" + volume + '/' + partialUrl;
-					}
-					if(!partialUrl.isEmpty() && !partialUrl.contains("mail") && !name.equals("contact me") && !name.equals("contattami") && !name.isEmpty()){
-						relatedBands.add(new Band(name, partialUrl, null, null, null));
-					}
-				}
-				band.setRelatedBands(relatedBands);
-			}catch (IOException e) {
-				band = null;
-				e.printStackTrace();
 			}
 		}
-		return band;
+		return retBand;
+	}
+	
+	public Set<Band> getAllBandsVolume(int volume){
+		Set<Band> bands = new TreeSet<>();
+		String url = "http://www.scaruffi.com/vol" + volume + "/";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			Elements selects = doc.getElementsByTag("select");
+			for(Element select : selects){
+				Elements optionsTemp = select.getElementsByTag("option");
+				for(int i = 1; i < optionsTemp.size(); i++)
+						bands.add(new Band(optionsTemp.get(i).text(), optionsTemp.get(i).attr("value"), null, null, null));
+				}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return bands;
 	}
 }
