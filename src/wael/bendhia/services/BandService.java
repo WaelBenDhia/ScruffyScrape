@@ -1,5 +1,7 @@
 package wael.bendhia.services;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.GET;
@@ -10,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 
 import wael.bendhia.dao.BandDao;
 import wael.bendhia.entities.Band;
+import wael.bendhia.utils.ScaruffiDB;
 
 @Path("/BandService")
 public class BandService {
@@ -42,5 +45,26 @@ public class BandService {
    @Produces(MediaType.APPLICATION_JSON)
    public Band getBandFull(@PathParam("volume") String volume, @PathParam("url") String url){
 	   return bandDao.getBand(new Band("", volume+"/"+url+".html", "", null, null));
+   }
+   
+   @GET
+   @Path("/ratings/distribution")
+   @Produces(MediaType.APPLICATION_JSON)
+   public Map<Float, Integer> getScoreDistribution(){
+	   return ScaruffiDB.getInstance().getScoreDistribution();
+   }
+   
+   @GET
+   @Path("/bands/total")
+   @Produces(MediaType.APPLICATION_JSON)
+   public int getBandTotal(){
+	   return ScaruffiDB.getInstance().getBandCount();
+   }
+   
+   @GET
+   @Path("/bands/influential")
+   @Produces(MediaType.APPLICATION_JSON)
+   public List<Band> getBandsInfluential(){
+	   return ScaruffiDB.getInstance().getMostInfluentialBands();
    }
 }

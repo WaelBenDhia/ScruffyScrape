@@ -158,7 +158,7 @@ public class BandDao {
 							int year = yearMatcher.find() ? Integer.parseInt(yearMatcher.group()) : 0;
 							float rating = ratingMatcher.find() ? Float.parseFloat(ratingMatcher.group()) : 0;
 							
-							albums.add(new Album(name, year, rating));
+							albums.add(new Album(name, year, rating, null));
 						}
 						retBand.setAlbums(albums);
 					}catch (Exception e) {}
@@ -178,6 +178,8 @@ public class BandDao {
 									!partialUrl.isEmpty() &&
 									!partialUrl.contains("mail") &&
 									!partialUrl.contains("http") &&
+									!partialUrl.contains("history") &&
+									!partialUrl.contains("oldavant") &&
 									!name.isEmpty() &&
 									!name.contains("contact") &&
 									!name.contains("contattami")
@@ -207,7 +209,7 @@ public class BandDao {
 			for(Element select : selects){
 				Elements optionsTemp = select.getElementsByTag("option");
 				for(int i = 1; i < optionsTemp.size(); i++)
-						bands.add(new Band(optionsTemp.get(i).text(), optionsTemp.get(i).attr("value"), null, null, null));
+						bands.add(new Band(optionsTemp.get(i).text(), "vol"+volume+"/"+optionsTemp.get(i).attr("value"), null, null, null));
 				}
 		} catch (IOException e) {
 			e.printStackTrace();

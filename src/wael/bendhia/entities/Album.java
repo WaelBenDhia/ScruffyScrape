@@ -5,18 +5,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "album")
 public class Album {
-	String name;
-	int year;
-	float rating;
+	private String name;
+	private int year;
+	private float rating;
+	private Band band;
+	
 	
 	public Album(){
 		
 	}
 	
-	public Album(String name, int year, float rating){
+	public Album(String name, int year, float rating, Band band){
 		this.name = name;
 		this.year = year;
 		this.rating = rating;
+		this.band = band;
 	}
 
 	public String getName() {
@@ -44,6 +47,15 @@ public class Album {
 	@XmlElement
 	public void setRating(float rating) {
 		this.rating = rating;
+	}
+	
+	public Band getBand(){
+		return band;
+	}
+	
+	@XmlElement
+	public void setBand(Band band){
+		this.band = band;
 	}
 	
 	@Override

@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -46,7 +48,7 @@ public class ScaruffiDB {
 			stmt.execute();
 			stmt.close();
 			return true;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -70,7 +72,7 @@ public class ScaruffiDB {
 				for(Album album : band.getAlbums())
 					insert(band, album);
 			return true;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -86,7 +88,7 @@ public class ScaruffiDB {
 			stmt.execute();
 			stmt.close();
 			return true;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -100,7 +102,7 @@ public class ScaruffiDB {
 			stmt.execute();
 			stmt.close();
 			return true;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			return false;
 		}
 	}
@@ -120,7 +122,7 @@ public class ScaruffiDB {
 			stmt.execute();
 			stmt.close();
 			return true;
-		}catch (SQLException e) {
+		}catch (Exception e) {
 			return false;
 		}
 	}
@@ -140,7 +142,7 @@ public class ScaruffiDB {
 						null));
 			}
 			stmt.close();
-		}catch (SQLException e) {
+		}catch (Exception e) {
 		}
 		return bands;
 	}
@@ -160,7 +162,7 @@ public class ScaruffiDB {
 						null);
 			}
 			stmt.close();
-		}catch (SQLException e) {
+		}catch (Exception e) {
 		}
 		return band;
 	}
@@ -175,11 +177,12 @@ public class ScaruffiDB {
 				albums.add(new Album(
 						rs.getString(1),
 						rs.getInt(2),
-						rs.getFloat(3)
+						rs.getFloat(3),
+						null
 						));
 			}
 			stmt.close();
-		}catch (SQLException e) {
+		}catch (Exception e) {
 		}
 		return albums;
 	}
@@ -199,7 +202,7 @@ public class ScaruffiDB {
 						null));
 			}
 			stmt.close();
-		}catch (SQLException e) {
+		}catch (Exception e) {
 		}
 		return relatedBands;
 	}
@@ -211,5 +214,87 @@ public class ScaruffiDB {
 			band.setRelatedBands(getRelatedBands(band));
 		}
 		return band;
+	}
+	
+	public Map<Float, Integer> getScoreDistribution(){
+		String query = "SELECT floor(scaruffi.albums.rating*2)/2, count(*) FROM scaruffi.albums group by floor(scaruffi.albums.rating*2)/2;";
+		Map<Float, Integer> distribution = new HashMap<>();
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()){
+				distribution.put(rs.getFloat(1), rs.getInt(2));
+			}
+			stmt.close();
+		}catch (Exception e) {
+		}
+		return distribution;
+	}
+
+	private List<Album> parseAlbumFromDB(ResultSet rs){
+		List<Album> albums = new ArrayList<>();
+		try{
+			while(rs.next()){
+				albums.add(new Album(
+						rs.getString(1),
+						rs.getInt(2),
+						rs.getFloat(3),
+						new Band(
+								rs.getString(4),
+								rs.getString(5),
+								null,
+								null,
+								null
+								)
+						));
+			}
+		}catch (Exception e) {
+		}
+		return albums;
+	}
+	
+	public List<Album> getAlbumsByRating(float rating){
+		List<Album> albums = new ArrayList<>();
+		String query = "SELECT albums.name, albums.year, albums.rating, bands.name, bands.partialUrl FROM albums INNER JOIN bands ON albums.band = bands.partialUrl WHERE albums.rating = " + rating;
+		try{
+			Statement stmt = connection.createStatement();
+			albums = parseAlbumFromDB(stmt.executeQuery(query));
+			stmt.close();
+		}catch (Exception e) {
+		}
+		return albums;
+	}
+	
+	public int getBandCount(){
+		String query = "select count(*) FROM bands;";
+		int total = 0;
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next())
+				total = rs.getInt(1);
+			stmt.close();
+		}catch (Exception e) {
+		}
+		return total;
+	}
+	
+	public List<Band> getMostInfluentialBands(){
+		String query = "select count(b2b.urlOfBand) as inf, b.name, b.partialUrl FROM bands b inner join bands2bands b2b on b.partialUrl = b2b.urlOfRelated group by b2b.urlOfRelated order by inf desc limit 20";
+		List<Band> bands = new ArrayList<>();
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next())
+				bands.add(new Band(
+						rs.getString(2),
+						rs.getString(3),
+						"",
+						null,
+						null));
+			stmt.close();
+		}catch (Exception e) {
+		}
+		return bands;
 	}
 }
