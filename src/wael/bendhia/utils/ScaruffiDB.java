@@ -297,4 +297,22 @@ public class ScaruffiDB {
 		}
 		return bands;
 	}
+	
+	public List<Album> searchAlbums(AlbumSearchRequest req){
+		String query = "select a.name, a.year, a.rating, b.name, b.partialUrl from albums a inner join bands b on b.partialUrl = a.band where a.rating between "
+					+ req.getRatingLower() + " and " + req.getRatingHigher() + " and "
+					+ "(a.year between " + req.getYearLower() + " and " + req.getYearHigher()
+					+ (req.isIncludeUnknown() ? " or a.year = 0" : "") + ") " 
+					+ (req.getName().isEmpty() ? "" : "and instr(lower(a.name), lower('" + req.getName() + "')) ") 
+					+ "order by a.rating desc limit 1000;";
+		List<Album> albums = new ArrayList<>();
+		try{
+			Statement stmt = connection.createStatement();
+			albums = parseAlbumFromDB(stmt.executeQuery(query));
+			stmt.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return albums;
+	}
 }

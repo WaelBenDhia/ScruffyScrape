@@ -4,18 +4,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import wael.bendhia.dao.BandDao;
+import wael.bendhia.entities.Album;
 import wael.bendhia.entities.Band;
+import wael.bendhia.utils.AlbumSearchRequest;
 import wael.bendhia.utils.ScaruffiDB;
 
-@Path("/BandService")
-public class BandService {
+@Path("/MusicService")
+public class MusicService {
 
    BandDao bandDao = new BandDao();
 
@@ -66,5 +70,13 @@ public class BandService {
    @Produces(MediaType.APPLICATION_JSON)
    public List<Band> getBandsInfluential(){
 	   return ScaruffiDB.getInstance().getMostInfluentialBands();
+   }
+   
+   @POST
+   @Path("/albums/search")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public List<Album> searchAlbums(AlbumSearchRequest req){
+	   return ScaruffiDB.getInstance().searchAlbums(req);
    }
 }
