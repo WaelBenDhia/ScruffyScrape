@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -55,6 +56,246 @@ public class BandDao {
 			}
 		}
 		return allBands;
+	}
+	
+	public void getBestAlbumsAllTimeDates(){
+		String url = "http://scaruffi.com/music/picbest.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Pattern yearPattern = Pattern.compile("(?<=(, ))[0-9]{4}");
+			Pattern bandNamePattern = Pattern.compile("(?<=([0-9]*[)] )).*(?=:)");
+			Pattern albumNamePattern = Pattern.compile("(?<=(: )).*");
+			
+			Elements linerElements = doc.getElementsByTag("center").get(0).getElementsByTag("table").get(0).getElementsByTag("tr");
+			
+			List<Album> albums = new ArrayList<>();
+			
+			for(Element linerElement : linerElements){
+				
+				String bandAlbumName = linerElement.getElementsByTag("td").get(0).getElementsByTag("font").get(0).text();
+				String linerNotes = linerElement.getElementsByTag("td").get(1).text();
+				
+				int year = 0;
+				String albumName = "";
+				String bandName = "";
+				
+				Matcher yearMatcher = yearPattern.matcher(linerNotes);
+				Matcher albumMatcher = albumNamePattern.matcher(bandAlbumName);
+				Matcher bandMatcher = bandNamePattern.matcher(bandAlbumName);
+				
+				
+				if(yearMatcher.find())
+					year = Integer.parseInt(yearMatcher.group(0));
+				
+				
+				if(albumMatcher.find())
+					albumName = albumMatcher.group(0);
+				
+				
+				if(bandMatcher.find())
+					bandName = bandMatcher.group(0);
+				
+				albums.add(new Album(albumName, year, 0, new Band(bandName, null, null, null, null)));
+				
+			}
+			
+			for(Album album : albums){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums60sDates(){
+		String url = "http://scaruffi.com/ratings/60.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements albumElements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(2)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul").get(0)
+					.getElementsByTag("li");
+			
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums70sDates(){
+		String url = "http://scaruffi.com/ratings/70.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements elements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(2)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul");
+			
+			Elements albumElements = new Elements();
+			for(Element element : elements){
+				albumElements.addAll(element.getElementsByTag("li"));
+			}
+
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums80sDates(){
+		String url = "http://scaruffi.com/ratings/80.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements elements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(2)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul");
+			
+			Elements albumElements = new Elements();
+			for(Element element : elements){
+				albumElements.addAll(element.getElementsByTag("li"));
+			}
+			
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums90sDates(){
+		String url = "http://scaruffi.com/ratings/90.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements elements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(2)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul");
+			
+			Elements albumElements = new Elements();
+			for(Element element : elements){
+				albumElements.addAll(element.getElementsByTag("li"));
+			}
+			
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums00sDates(){
+		String url = "http://scaruffi.com/ratings/00.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements elements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(3)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul");
+			
+			Elements albumElements = new Elements();
+			for(Element element : elements){
+				albumElements.addAll(element.getElementsByTag("li"));
+			}
+			
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void getBestAlbums10sDates(){
+		String url = "http://scaruffi.com/ratings/10.html";
+		try {
+			Document doc = Jsoup.connect(url).get();
+			
+			Elements elements = doc
+					.getElementsByTag("center").get(0)
+					.getElementsByTag("table").get(3)
+					.getElementsByTag("tbody").get(0)
+					.getElementsByTag("tr").get(0)
+					.getElementsByTag("td").get(0)
+					.getElementsByTag("ul");
+			
+			Elements albumElements = new Elements();
+			for(Element element : elements){
+				albumElements.addAll(element.getElementsByTag("li"));
+			}
+			
+			for(Album album : getAbumsFromTopListElements(albumElements)){
+				System.out.println("Rows changed for " + album.getBand().getName() + "-" + album.getName() + " :" + sdb.updateAlbumDate(album));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public List<Album> getAbumsFromTopListElements(Elements albumElements){
+		List<Album> albums = new ArrayList<>();
+		
+		Pattern yearPattern = Pattern.compile("(?<=[(])[0-9]{4}(?=[)])");
+		Pattern bandNamePattern = Pattern.compile(".*(?=:)");
+		Pattern albumNamePattern = Pattern.compile("(?<=(: )).*(?=[(])");
+		
+		for(Element albumElement : albumElements){
+			
+			String bandAlbumName = albumElement.text();
+			
+			int year = 0;
+			String albumName = "";
+			String bandName = "";
+			
+			Matcher yearMatcher = yearPattern.matcher(bandAlbumName);
+			Matcher albumMatcher = albumNamePattern.matcher(bandAlbumName);
+			Matcher bandMatcher = bandNamePattern.matcher(bandAlbumName);
+			
+			
+			if(yearMatcher.find())
+				year = Integer.parseInt(yearMatcher.group(0));
+			
+			
+			if(albumMatcher.find())
+				albumName = albumMatcher.group(0);
+			
+			
+			if(bandMatcher.find())
+				bandName = bandMatcher.group(0);
+			
+			albums.add(new Album(albumName, year, 0, new Band(bandName, null, null, null, null)));
+			
+		}
+		
+		return albums;
 	}
 	
 	public Set<Band> getRockBands(){

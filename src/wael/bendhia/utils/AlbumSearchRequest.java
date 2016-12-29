@@ -11,16 +11,20 @@ public class AlbumSearchRequest {
 	private float ratingLower;
 	private float ratingHigher;
 	private boolean includeUnknown;
+	private int page;
+	private int numberOfResults;
 	
 	public AlbumSearchRequest(){}
 	
-	public AlbumSearchRequest(String name, int yearLower, int yearHigher, float ratingLower, float ratingHigher, boolean includeUnknown) {
+	public AlbumSearchRequest(String name, int yearLower, int yearHigher, float ratingLower, float ratingHigher, boolean includeUnknown, int page, int numberOfResults) {
 		this.name = name;
 		this.yearLower = yearLower;
 		this.yearHigher = yearHigher;
 		this.ratingLower = ratingLower;
 		this.ratingHigher = ratingHigher;
 		this.includeUnknown = includeUnknown;
+		this.page = page;
+		this.numberOfResults = numberOfResults;
 	}
 	
 	@XmlElement
@@ -76,7 +80,23 @@ public class AlbumSearchRequest {
 	public void setIncludeUnknown(boolean includeUnknown) {
 		this.includeUnknown = includeUnknown;
 	}
-	
-	
+
+	@XmlElement
+	public int getPage() {
+		return page;
+	}
+
+	public void setLimit(int page) {
+		this.page = page;
+	}
+
+	@XmlElement
+	public int getNumberOfResults() {
+		return numberOfResults;
+	}
+
+	public void setNumberOfResults(int numberOfResults) {
+		this.numberOfResults = numberOfResults;
+	}
 
 }

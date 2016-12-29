@@ -89,6 +89,7 @@ public class ScaruffiDB {
 			stmt.close();
 			return true;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return false;
 		}
 	}
@@ -304,7 +305,8 @@ public class ScaruffiDB {
 					+ "(a.year between " + req.getYearLower() + " and " + req.getYearHigher()
 					+ (req.isIncludeUnknown() ? " or a.year = 0" : "") + ") " 
 					+ (req.getName().isEmpty() ? "" : "and instr(lower(a.name), lower('" + req.getName() + "')) ") 
-					+ "order by a.rating desc limit 1000;";
+					+ "order by a.rating desc " 
+					+ "limit " + (req.getPage() * req.getNumberOfResults()) + "," + req.getNumberOfResults() + ";";
 		List<Album> albums = new ArrayList<>();
 		try{
 			Statement stmt = connection.createStatement();
@@ -314,5 +316,41 @@ public class ScaruffiDB {
 			e.printStackTrace();
 		}
 		return albums;
+	}
+	
+	public int searchAlbumsCount(AlbumSearchRequest req){
+		int count = 0;
+		String query = "select count(*) from albums a inner join bands b on b.partialUrl = a.band where a.rating between "
+					+ req.getRatingLower() + " and " + req.getRatingHigher() + " and "
+					+ "(a.year between " + req.getYearLower() + " and " + req.getYearHigher()
+					+ (req.isIncludeUnknown() ? " or a.year = 0" : "") + ") " 
+					+ (req.getName().isEmpty() ? "" : "and instr(lower(a.name), lower('" + req.getName() + "')) ") 
+					+ "order by a.rating desc;";
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next())
+				count = rs.getInt(1);
+			stmt.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return count;
+	}
+	
+	public int updateAlbumDate(Album album){
+		String query = "update albums a inner join bands b on a.band = b.partialUrl set a.year = ? where a.name = ? and b.name = ? and a.year = 0;";
+		int result = -1;
+		try {
+			PreparedStatement stmt = connection.prepareStatement(query);
+			stmt.setInt(1, album.getYear());
+			stmt.setString(2, album.getName());
+			stmt.setString(3, album.getBand().getName());
+			result = stmt.executeUpdate();
+			stmt.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 }

@@ -79,4 +79,12 @@ public class MusicService {
    public List<Album> searchAlbums(AlbumSearchRequest req){
 	   return ScaruffiDB.getInstance().searchAlbums(req);
    }
+   
+   @POST
+   @Path("/albums/searchCount")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public int searchAlbumsCount(AlbumSearchRequest req){
+	   return ScaruffiDB.getInstance().searchAlbumsCount(req);
+   }
 }
