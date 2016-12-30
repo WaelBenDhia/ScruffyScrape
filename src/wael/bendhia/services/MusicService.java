@@ -16,7 +16,7 @@ import wael.bendhia.dao.BandDao;
 import wael.bendhia.entities.Album;
 import wael.bendhia.entities.Band;
 import wael.bendhia.utils.AlbumSearchRequest;
-import wael.bendhia.utils.ScaruffiDB;
+import wael.bendhia.utils.BandSearchRequest;
 
 @Path("/MusicService")
 public class MusicService {
@@ -55,21 +55,21 @@ public class MusicService {
    @Path("/ratings/distribution")
    @Produces(MediaType.APPLICATION_JSON)
    public Map<Float, Integer> getScoreDistribution(){
-	   return ScaruffiDB.getInstance().getScoreDistribution();
+	   return bandDao.getScoreDistribution();
    }
    
    @GET
    @Path("/bands/total")
    @Produces(MediaType.APPLICATION_JSON)
-   public int getBandTotal(){
-	   return ScaruffiDB.getInstance().getBandCount();
+   public int getBandCount(){
+	   return bandDao.getBandCount();
    }
    
    @GET
    @Path("/bands/influential")
    @Produces(MediaType.APPLICATION_JSON)
    public List<Band> getBandsInfluential(){
-	   return ScaruffiDB.getInstance().getMostInfluentialBands();
+	   return bandDao.getMostInfluentialBands();
    }
    
    @POST
@@ -77,7 +77,7 @@ public class MusicService {
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    public List<Album> searchAlbums(AlbumSearchRequest req){
-	   return ScaruffiDB.getInstance().searchAlbums(req);
+	   return bandDao.searchAlbums(req);
    }
    
    @POST
@@ -85,6 +85,22 @@ public class MusicService {
    @Consumes(MediaType.APPLICATION_JSON)
    @Produces(MediaType.APPLICATION_JSON)
    public int searchAlbumsCount(AlbumSearchRequest req){
-	   return ScaruffiDB.getInstance().searchAlbumsCount(req);
+	   return bandDao.searchAlbumsCount(req);
+   }
+   
+   @POST
+   @Path("/bands/search")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public Set<Band> searchBands(BandSearchRequest req){
+	   return bandDao.searchBands(req);
+   }
+   
+   @POST
+   @Path("/bands/searchCount")
+   @Consumes(MediaType.APPLICATION_JSON)
+   @Produces(MediaType.APPLICATION_JSON)
+   public int searchBandsCount(BandSearchRequest req){
+	   return bandDao.searchBandsCount(req);
    }
 }

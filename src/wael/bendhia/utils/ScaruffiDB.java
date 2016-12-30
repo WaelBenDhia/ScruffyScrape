@@ -281,7 +281,7 @@ public class ScaruffiDB {
 	}
 	
 	public List<Band> getMostInfluentialBands(){
-		String query = "select count(b2b.urlOfBand) as inf, b.name, b.partialUrl FROM bands b inner join bands2bands b2b on b.partialUrl = b2b.urlOfRelated group by b2b.urlOfRelated order by inf desc limit 20";
+		String query = "select count(b2b.urlOfBand) as inf, b.name, b.partialUrl FROM bands b inner join bands2bands b2b on b.partialUrl = b2b.urlOfRelated group by b2b.urlOfRelated order by inf desc limit 21";
 		List<Band> bands = new ArrayList<>();
 		try{
 			Statement stmt = connection.createStatement();
@@ -304,8 +304,8 @@ public class ScaruffiDB {
 					+ req.getRatingLower() + " and " + req.getRatingHigher() + " and "
 					+ "(a.year between " + req.getYearLower() + " and " + req.getYearHigher()
 					+ (req.isIncludeUnknown() ? " or a.year = 0" : "") + ") " 
-					+ (req.getName().isEmpty() ? "" : "and instr(lower(a.name), lower('" + req.getName() + "')) ") 
-					+ "order by a.rating desc " 
+					+ (req.getName().isEmpty() ? "" : "and ( instr(lower(a.name), lower('" + req.getName() + "')) or instr(lower(b.name), lower('" + req.getName() + "'))) ") 
+					+ "order by " + AlbumSearchRequest.getSortByAsString(req.getSortBy(), "a", "b") + (req.isSortOrderAsc() ? " asc " : " desc ") 
 					+ "limit " + (req.getPage() * req.getNumberOfResults()) + "," + req.getNumberOfResults() + ";";
 		List<Album> albums = new ArrayList<>();
 		try{
@@ -324,8 +324,7 @@ public class ScaruffiDB {
 					+ req.getRatingLower() + " and " + req.getRatingHigher() + " and "
 					+ "(a.year between " + req.getYearLower() + " and " + req.getYearHigher()
 					+ (req.isIncludeUnknown() ? " or a.year = 0" : "") + ") " 
-					+ (req.getName().isEmpty() ? "" : "and instr(lower(a.name), lower('" + req.getName() + "')) ") 
-					+ "order by a.rating desc;";
+					+ (req.getName().isEmpty() ? "" : "and ( instr(lower(a.name), lower('" + req.getName() + "')) or instr(lower(b.name), lower('" + req.getName() + "'))) ") + ";";
 		try{
 			Statement stmt = connection.createStatement();
 			ResultSet rs = stmt.executeQuery(query);
@@ -352,5 +351,50 @@ public class ScaruffiDB {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	public Set<Band> SearchBands(BandSearchRequest req){
+		String query = "select b.partialUrl, b.name from bands b where "
+				+ "instr(lower(b.name), lower('" + req.getName() + "')) " 
+				+ " order by b.name "
+				+ "limit " + (req.getPage() * req.getNumberOfResults()) + "," + req.getNumberOfResults() + ";";
+		
+		Set<Band> bands = new TreeSet<>();
+		
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()){
+				bands.add(new Band(
+						rs.getString(2),
+						rs.getString(1),
+						null,
+						null,
+						null));
+			}
+			stmt.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return bands;
+	}
+	
+	public int searchBandsCount(BandSearchRequest req){
+
+		String query = "select count(*) from bands b where "
+				+ "instr(lower(b.name), lower('" + req.getName() + "'));";
+		
+		int count = 0;
+		
+		try{
+			Statement stmt = connection.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next())
+				count = rs.getInt(1);
+			stmt.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+		return count;
 	}
 }
