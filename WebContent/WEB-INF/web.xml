@@ -17,8 +17,8 @@
             <param-value>wael.bendhia</param-value>
          </init-param>
       </servlet>
-   <servlet-mapping>
-   <servlet-name>Scruffy Bands RESTful Application</servlet-name>
-      <url-pattern>/Scruffy/*</url-pattern>
+	<servlet-mapping>
+		<servlet-name>Scruffy Bands RESTful Application</servlet-name>
+		<url-pattern>/Scruffy/*</url-pattern>
    </servlet-mapping>
 </web-app>
