@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -60,6 +60,7 @@ public class BandDao {
 		getBestAlbums90sDates();
 		getBestAlbums00sDates();
 		getBestAlbums10sDates();
+		getMissingAlbumDateFromMusicBrainz();
 	}
 	
 	public Set<Band> getAllBands(){
@@ -485,6 +486,58 @@ public class BandDao {
 		}
 		
 		return albums;
+	}
+	
+	public void getMissingAlbumDateFromMusicBrainz(){
+		int count = searchAlbumsCount(new AlbumSearchRequest("", 0, 0, 0, 10, true, 0, 1));
+		List<Album> albumsToUpdate = searchAlbums(new AlbumSearchRequest("", 0, 0, 0, 10, true, 0, count));
+		int i = 0;
+		for(Album originalAlbum : albumsToUpdate){
+			Album mbAlbum = getClosestMusicBrainzMatch(originalAlbum);
+			i++;
+			String prog = "Progress"+i+"\\"+count+"\t";
+			if(mbAlbum.getName()!=null){
+				System.out.println(prog+"Setting date for " + originalAlbum.toString() + " to " + mbAlbum.getYear());
+				originalAlbum.setYear(mbAlbum.getYear());
+				sdb.updateAlbumDate(originalAlbum);
+			}else{
+				System.out.println(prog+"Found no match for " + originalAlbum.toString());
+			}
+			try {
+				TimeUnit.MILLISECONDS.sleep(750);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public Album getClosestMusicBrainzMatch(Album album){
+		String url = "http://musicbrainz.org/ws/2/release/?query=";
+		if(album.getName()!=null)
+			url += "release:" + album.getName().replaceAll(":|\\\\|/", " ") + "&";
+		if(album.getBand().getName()!=null)
+			url += "artist:" + album.getBand().getName().replaceAll(":|\\\\|/", " ");
+		Album bestResult = new Album();
+		bestResult.setYear(Integer.MAX_VALUE);
+		try {
+			Document document = Jsoup.connect(url).get();
+			Elements bestMatches = document.getElementsByAttributeValue("ext:score", "100");
+			for(Element match : bestMatches){
+				try{
+					Album matchAlbum = new Album(album.getName(), album.getYear(), album.getRating(), new Band(album.getBand().getName(), album.getBand().getUrl(), album.getBand().getBio(), null, null));
+					matchAlbum.setName(match.getElementsByTag("title").get(0).text());
+					matchAlbum.setYear(Integer.parseInt(match.getElementsByTag("date").get(0).text().substring(0, 4)));
+					matchAlbum.getBand().setName(match.getElementsByTag("name-credit").get(0).getElementsByTag("name").get(0).text());
+					if(matchAlbum.getYear() < bestResult.getYear() && matchAlbum.getBand().getName().toLowerCase().equals(album.getBand().getName().toLowerCase()))
+						bestResult = matchAlbum;
+				}catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
+			}
+		} catch (IOException e) {
+			System.err.println(e.getMessage() + " URL= " + url);
+		}
+		return bestResult;
 	}
 	
 	public List<Album> searchAlbums(AlbumSearchRequest req){
